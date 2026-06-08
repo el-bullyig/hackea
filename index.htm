@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackear Bullying - Proyecto Tecnológico Contra el Acoso</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-pure-black: #000000;
+            --bg-card: rgba(10, 15, 29, 0.9);
+            --primary: #3B82F6;
+            --primary-hover: #2563EB;
+            --accent-red: #EF4444;
+            --accent-green: #10B981;
+            --text-light: #FFFFFF;
+            --text-muted: #64748B;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-pure-black);
+            color: var(--text-light);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* TU VIDEO GALÁCTICO DE FONDO */
+        #bg-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -2;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        /* Capa oscura para contraste cibernético */
+        .capa-oscura {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.85));
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Bloqueo inicial antes de interactuar con el robot */
+        body.locked {
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .oculto-inicio {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.2s ease-in-out;
+        }
+
+        .visible {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        /* Capa transparente sobre el robot para detectar el primer clic */
+        #robot-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        /* Barra de Navegación */
+        header {
+            background-color: rgba(0, 0, 0, 0.85);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        nav {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 1.2rem 5%;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #94A3B8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            padding: 0.5rem 0.7rem;
+        }
+
+        .nav-links a:hover, .nav-links a.active-nav {
+            color: var(--text-light);
+        }
+
+        .btn-denuncia {
+            background-color: var(--accent-red) !important;
+            color: white !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 4px !important;
+            font-weight: 700 !important;
+        }
+
+        /* SITIO PRINCIPAL (HERO) */
+        #inicio-sitio {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #hero-content {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .corner {
+            position: absolute;
+            width: 20px; height: 20px;
+            border: 2px solid transparent;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .corner-tl { top: 100px; left: 40px; border-top-color: #FFF; border-left-color: #FFF; }
+        .corner-tr { top: 100px; right: 40px; border-top-color: #FFF; border-right-color: #FFF; }
+
+        .hero-title-bg {
+            position: absolute;
+            z-index: 1;
+            width: 100%;
+            text-align: center;
+            user-select: none;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .hero-title-bg h1 {
+            font-size: 11vw;
+            font-weight: 900;
+            line-height: 0.85;
+            letter-spacing: -3px;
+            color: #FFFFFF;
+            text-transform: uppercase;
+        }
+
+        .hero-title-bg h1 span {
+            color: transparent;
+            -webkit-text-stroke: 2px #FFFFFF;
+        }
+
+        .hero-robot-container {
+            position: absolute;
+            z-index: 2;
+            width: 100vw;
+            height: 55vh;
+            max-width: 850px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spline-frame {
+            width: 100%; height: 100%;
+            border: none;
+        }
+
+        /* ARQUITECTURA DE SUBSITIOS (PÁGINAS INDEPENDIENTES) */
+        .subsitio-pagina {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 8rem 2rem 6rem 2rem;
+            min-height: 85vh;
+            animation: entradaSubsitio 0.6s ease-out forwards;
+        }
+
+        @keyframes entradaSubsitio {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .subsitio-header {
+            margin-bottom: 3rem;
+            border-left: 4px solid var(--primary);
+            padding-left: 1.5rem;
+        }
+
+        .subsitio-header h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .subsitio-header p {
+            color: #94A3B8;
+            font-size: 1.1rem;
+        }
+
+        /* Botón de retorno al Home */
+        .btn-regresar {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.7rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            transition: all 0.3s;
+        }
+
+        .btn-regresar:hover {
+            background: #FFFFFF;
+            color: #000000;
+            border-color: #FFFFFF;
+        }
+
+        /* Reutilización de Tarjetas de Información Internas */
+        .grid-tarjetas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .tech-card {
+            background: var(--bg-card);
+            padding: 2.5rem;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .tech-card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tech-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            color: #FFF;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tech-card p, .tech-card li {
+            color: #94A3B8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .tech-card ul {
+            list-style: none;
+            margin-top: 0.8rem;
+        }
+
+        .tech-card li {
+            margin-bottom: 0.6rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .tech-card li::before {
+            content: "▪";
+            color: var(--primary);
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .card-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: #FFFFFF;
+            color: #000000;
+            padding: 0.8rem;
+            text-decoration: none;
+            font-weight: 700;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background-color 0.3s;
+        }
+
+        .card-btn.alert-btn { background: var(--accent-red); color: white; }
+        .card-btn.alert-btn:hover { background: #DC2626; }
+
+        /* ESTRUCTURA Y DISEÑO DE LA ENCUESTA FORMULARIO */
+        .encuesta-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: #FFF;
+        }
+
+        .radio-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: #94A3B8;
+            cursor: pointer;
+            font-size: 0.95rem;
+            padding: 0.5rem;
+            border: 1px solid transparent;
+            transition: color 0.3s;
+        }
+
+        .radio-label:hover {
+            color: #FFF;
+        }
+
+        .radio-input {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #64748B;
+            border-radius: 50%;
+            outline: none;
+            background: transparent;
+            cursor: pointer;
+            display: inline-grid;
+            place-content: center;
+        }
+
+        .radio-input::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            transform: scale(0);
+            transition: 0.15s transform ease-in-out;
+            background-color: var(--primary);
+        }
+
+        .radio-input:checked {
+            border-color: var(--primary);
+        }
+
+        .radio-input:checked::before {
+            transform: scale(1);
+        }
+
+        .textarea-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 1rem;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+        }
+
+        .textarea-input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-submit-encuesta {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 1rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-submit-encuesta:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Pantalla de éxito de la encuesta */
+        .encuesta-success {
+            display: none;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .encuesta-success h4 {
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        footer {
+            text-align: center;
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            background: rgba(0,0,0,0.9);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links, .corner { display: none; }
+            .hero-title-bg h1 { font-size: 14vw; }
+            .hero-robot-container { height: 45vh; }
+            .subsitio-header h2 { font-size: 1.8rem; }
+            .encuesta-container { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="locked">
+
+    <video autoplay muted loop playsinline id="bg-video">
+        <source src="cristalarone_pindown.io_1780496242.mp4" type="video/mp4">
+    </video>
+    <div class="capa-oscura"></div>
+
+    <audio id="audio-cyber" src="WhatsApp Audio 2026-06-03 at 9.03.45 AM.mpeg" loop></audio>
+
+    <div class="corner corner-tl oculto-inicio"></div>
+    <div class="corner corner-tr oculto-inicio"></div>
+
+    <header class="oculto-inicio">
+        <nav>
+            <ul class="nav-links">
+                <li><a href="#" class="nav-home active-nav">🏠 Inicio</a></li>
+                <li><a href="#" class="nav-trigger" data-target="subsitio-tipos">📚 Tipos</a></li>
+                <li><a href="#" class="nav-trigger" data-target="subsitio-senales">⚠️ Señales</a></li>
+                <li><a href="#" class="nav-trigger" data-target="subsitio-ciber">💻 Ciber</a></li>
+                <li><a href="#" class="nav-trigger" data-target="subsitio-actuar">🤝 Actuar</a></li>
+                <li><a href="#" class="nav-trigger" data-target="subsitio-encuestas">📊 Encuestas</a></li>
+                <li><a href="#" class="nav-trigger btn-denuncia" data-target="subsitio-actuar">🛡️ Denuncias</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        
+        <section id="inicio-sitio">
+            <div id="hero-content">
+                <div class="hero-title-bg oculto-inicio">
+                    <h1>HACKEA AL<br><span>BULLYING</span></h1>
+                </div>
+
+                <div class="hero-robot-container">
+                    <div id="robot-overlay"></div>
+                    <iframe src="https://my.spline.design/nexbotrobotcharacterconceptforpersonaluse-aQhd4AcRiXso48RPAm5CYLhG/" class="spline-frame"></iframe>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="subsitio-pagina" id="subsitio-tipos">
+            <button class="btn-regresar">⬅️ Regresar al Inicio</button>
+            <div class="subsitio-header">
+                <h2>📚 Subsitio: Tipos de Bullying</h2>
+                <p>Análisis técnico y desglose estructural de las dinámicas de agresión e impacto en el entorno escolar.</p>
+            </div>
+            <div class="grid-tarjetas">
+                <div class="tech-card">
+                    <h3>Físico (Directo e Indirecto)</h3>
+                    <p>Involucra el uso de la fuerza corporal organizada. Sus variantes incluyen corporales directas como empujones, golpes, zancadillas y palizas coordinadas.</p>
+                    <ul>
+                        <li><strong>Variante Indirecta:</strong> Robo sistematizado de objetos, destrucción deliberada de material escolar o pertenencias personales.</li>
+                        <li><strong>Efecto a largo plazo:</strong> Daño a la integridad corporal y desarrollo de estrés postraumático severo.</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Verbal (Ataque Psicolingüístico)</h3>
+                    <p>Es el tipo de acoso más común y difícil de rastrear por el profesorado. Utiliza la palabra hablada como vector de degradación emocional.</p>
+                    <ul>
+                        <li><strong>Manifestaciones:</strong> Apodos denigrantes constantes, insultos directos, propagación de rumores falsos y burlas sobre rasgos físicos.</li>
+                        <li><strong>Impacto cognitivo:</strong> Internalización de discursos autodestructivos y distorsión de la propia autoestima.</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Social / Relacional (Exclusión)</h3>
+                    <p>Dinámica de aislamiento perimetral. Consiste en la manipulación deliberada del estatus social del alumno afectado dentro del aula.</p>
+                    <ul>
+                        <li><strong>Acciones clave:</strong> Prohibir la participación del alumno en actividades, forzar el silencio grupal frente a su presencia e ignorarlo colectivamente.</li>
+                        <li><strong>Consecuencias:</strong> Pérdida total de redes de apoyo mutuo y desarrollo de fobia social.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="subsitio-pagina" id="subsitio-senales">
+            <button class="btn-regresar">⬅️ Regresar al Inicio</button>
+            <div class="subsitio-header">
+                <h2>⚠️ Subsitio: Señales de Alerta</h2>
+                <p>Protocolo de detección temprana e indicadores analíticos de dinámicas latentes de violencia.</p>
+            </div>
+            <div class="grid-tarjetas">
+                <div class="tech-card">
+                    <h3>Indicadores Psicosomáticos</h3>
+                    <p>El cuerpo reacciona biológicamente al estrés agudo producido por el hostigamiento prolongado en la institución escolar.</p>
+                    <ul>
+                        <li><strong>Síntomas recurrentes:</strong> Jaquecas intensas antes de asistir a clases, dolores estomacales crónicos, náuseas y simulación constante de enfermedades.</li>
+                        <li><strong>Evidencias corporales:</strong> Rasguños, hematomas o ropa rota que el estudiante intenta justificar con torpeza.</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Alteraciones del Comportamiento</h3>
+                    <p>Modificación drástica de los patrones de comportamiento habituales y el ritmo biológico estándar en el hogar.</p>
+                    <ul>
+                        <li><strong>En casa:</strong> Cambios bruscos de humor, accesos de ira inexplicables, mutismo absoluto, insomnio recurrente y pesadillas nocturnas.</li>
+                        <li><strong>Rutinas:</strong> El alumno solicita cambiar constantemente de ruta para ir al centro o exige ser acompañado a la puerta de entrada.</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Desplome Académico y Social</h3>
+                    <p>Afectación directa del rendimiento intelectual debido al consumo de energía psíquica invertida en mecanismos de defensa.</p>
+                    <ul>
+                        <li><strong>En el aula:</strong> Descenso repentino e injustificado de las calificaciones, falta de concentración, timidez extrema sobrevenida y miedo paralizante a exponer en público.</li>
+                        <li><strong>Aislamiento:</strong> Negativa rotunda a participar en excursiones, eventos grupales o fiestas.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="subsitio-pagina" id="subsitio-ciber">
+            <button class="btn-regresar">⬅️ Regresar al Inicio</button>
+            <div class="subsitio-header">
+                <h2>💻 Subsitio: Ciberbullying</h2>
+                <p>La infraestructura digital de la agresión. El acoso permanente desvinculado de las barreras del espacio físico.</p>
+            </div>
+            <div class="grid-tarjetas">
+                <div class="tech-card">
+                    <h3>Hostigamiento Asincrónico</h3>
+                    <p>Envío repetitivo y masivo de mensajes insultantes, amenazantes o humillantes a través de canales digitales directos.</p>
+                    <ul>
+                        <li><strong>Canales críticos:</strong> Grupos de mensajería (WhatsApp), hilos en redes sociales y chats en servidores de videojuegos (Discord).</li>
+                        <li><strong>Factor amplificador:</strong> El ataque no cesa al salir del aula; persigue a la víctima las 24 horas del día.</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Suplantación de Identidad</h3>
+                    <p>Robo y alteración de credenciales de identidad digital con la finalidad de desacreditar públicamente al estudiante.</p>
+                    <ul>
+                        <li><strong>Estrategias:</strong> Creación de perfiles falsos con la foto de la víctima para publicar contenido denigrante o emitir comentarios ofensivos en su nombre.</li>
+                        <li><strong>Peligro:</strong> Expone a la víctima a sanciones académicas o al rechazo colectivo debido a acciones que no cometió.</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Difamación y Exclusión Digital</h3>
+                    <p>Distribución masiva de material audiovisual comprometido o manipulado destinado al escarnio público.</p>
+                    <ul>
+                        <li><strong>Acciones comunes:</strong> Difusión de fotomontajes crueles (memes), publicación de capturas de pantalla de chats privados y la exclusión coordinada y voluntaria de los grupos de estudio de la clase.</li>
+                        <li><strong>Gravedad:</strong> La viralidad dificulta la eliminación definitiva del rastro digital de la humillación.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="subsitio-pagina" id="subsitio-actuar">
+            <button class="btn-regresar">⬅️ Regresar al Inicio</button>
+            <div class="subsitio-header">
+                <h2>🤝 Subsitio: Cómo Actuar y 🛡️ Denuncias</h2>
+                <p>Estrategias tácticas de contención y activación de protocolos legales de seguridad frente al abuso.</p>
+            </div>
+            <div class="grid-tarjetas">
+                <div class="tech-card">
+                    <h3>Manual para Alumnos Afectados</h3>
+                    <p>Pasos operativos inmediatos para neutralizar la agresión sin escalar la violencia física o virtual.</p>
+                    <ul>
+                        <li>• <strong>No responder:</strong> Rompe la retroalimentación que busca el agresor.</li>
+                        <li>• <strong>Preservar evidencias:</strong> Toma capturas de pantalla, graba audios o videos de los incidentes. No borres nada.</li>
+                        <li>• <strong>Bloqueo digital:</strong> Restringe el acceso de los perfiles acosadores en todas tus redes sociales.</li>
+                        <li>• <strong>Comunicar:</strong> Informa urgentemente a un orientador o adulto de confianza.</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Código ético para Testigos</h3>
+                    <p>La inacción y el silencio validan estructuralmente las acciones del acosador. Los testigos clave deciden el fin del ciclo.</p>
+                    <ul>
+                        <li>• <strong>No difundir:</strong> Corta la cadena de reenvíos de memes o videos humillantes.</li>
+                        <li>• <strong>Intervención pasiva:</strong> Si es seguro, manifiesta tu desacuerdo con la burla.</li>
+                        <li>• <strong>Apoyo directo:</strong> Integra al compañero excluido a tus actividades de grupo.</li>
+                        <li>• <strong>Reporte confidencial:</strong> Utiliza los canales anónimos para reportar el caso.</li>
+                    </ul>
+                </div>
+                <div class="tech-card" style="border-color: var(--accent-red);">
+                    <h3>Canal de Denuncia Cifrado</h3>
+                    <p>Activación directa del protocolo institucional de contención inmediata. Protección perimetral activa 24/7.</p>
+                    <ul>
+                        <li>• Encriptación avanzada de datos de identidad.</li>
+                        <li>• Notificación instantánea al equipo directivo y psicopedagógico.</li>
+                        <li>• Asistencia jurídica y psicológica de emergencia en menos de 12 horas.</li>
+                    </ul>
+                    <a href="#" class="card-btn alert-btn">Activar Alerta de Emergencia</a>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="subsitio-pagina" id="subsitio-encuestas">
+            <button class="btn-regresar">⬅️ Regresar al Inicio</button>
+            <div class="subsitio-header">
+                <h2>📊 Subsitio: Encuesta Temprana de Convivencia</h2>
+                <p>Formulario de auditoría confidencial. Tus datos están totalmente protegidos de forma anónima para mapear la seguridad del aula.</p>
+            </div>
+
+            <div class="encuesta-container">
+                <form id="bullying-form">
+                    
+                    <div class="form-group">
+                        <label class="form-label">1. En los últimos meses, ¿has presenciado o sufrido alguna agresión física, verbal o digital en la institución?</label>
+                        <div class="radio-options">
+                            <label class="radio-label"><input type="radio" name="p1" value="si_sufrido" class="radio-input" required> Sí, la he sufrido directamente</label>
+                            <label class="radio-label"><input type="radio" name="p1" value="si_presenciado" class="radio-input"> Sí, la he presenciado en otros compañeros</label>
+                            <label class="radio-label"><input type="radio" name="p1" value="no" class="radio-input"> No, no he visto ni sufrido ninguna agresión</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">2. ¿Cuál crees que es el tipo de acoso que ocurre con mayor frecuencia en tu aula o curso?</label>
+                        <div class="radio-options">
+                            <label class="radio-label"><input type="radio" name="p2" value="verbal" class="radio-input" required> Bullying Verbal (Insultos, apodos, burlas)</label>
+                            <label class="radio-label"><input type="radio" name="p2" value="ciber" class="radio-input"> Ciberbullying (Acoso por WhatsApp, stickers, memes)</label>
+                            <label class="radio-label"><input type="radio" name="p2" value="social" class="radio-input"> Bullying Social (Dejar de lado, aislar, ignorar)</label>
+                            <label class="radio-label"><input type="radio" name="p2" value="fisico" class="radio-input"> Bullying Físico (Empujones, golpes, dañar cosas)</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">3. Si tuvieras un problema de acoso, ¿te sentirías seguro/a reportándolo a las autoridades o docentes del centro?</label>
+                        <div class="radio-options">
+                            <label class="radio-label"><input type="radio" name="p3" value="totalmente" class="radio-input" required> Sí, confío totalmente en el protocolo</label>
+                            <label class="radio-label"><input type="radio" name="p3" value="miedo" class="radio-input"> No, por temor a empeorar las cosas o sufrir represalias</label>
+                            <label class="radio-label"><input type="radio" name="p3" value="indiferencia" class="radio-input"> No, porque considero que los docentes no intervienen eficazmente</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">4. ¿Qué espacio del entorno escolar consideras el más vulnerable o desprotegido frente a situaciones de bullying?</label>
+                        <div class="radio-options">
+                            <label class="radio-label"><input type="radio" name="p4" value="redes" class="radio-input" required> El entorno digital (Grupos de chat de la clase)</label>
+                            <label class="radio-label"><input type="radio" name="p4" value="patio" class="radio-input"> El patio de recreo y zonas comunes</label>
+                            <label class="radio-label"><input type="radio" name="p4" value="banos" class="radio-input"> Los baños y pasillos durante los cambios de hora</label>
+                            <label class="radio-label"><input type="radio" name="p4" value="aula" class="radio-input"> La propia aula de clases en ausencia del docente</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">5. Sugerencias o comentarios (Opcional - ¿Hay algo que te gustaría reportar confidencialmente?):</label>
+                        <textarea class="textarea-input" name="comentarios" placeholder="Escribe aquí de forma libre y totalmente anónima..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit-encuesta">Enviar Encuesta Anónima</button>
+                </form>
+
+                <div class="encuesta-success" id="success-block">
+                    <h4>📡 Encuesta Transmitida con Éxito</h4>
+                    <p style="color: #94A3B8; font-size: 0.95rem; line-height: 1.6;">Tus respuestas han sido procesadas bajo cifrado de identidad. Los datos recopilados serán analizados por el gabinete técnico para optimizar la seguridad interna del centro. <br><br><strong>Gracias por tu valentía y por hackear al bullying.</strong></p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>🛡️ Sistema de Protección Activa | Hackear Bullying 2026</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('robot-overlay');
+            const elementosOcultos = document.querySelectorAll('.oculto-inicio');
+            const body = document.body;
+            const audio = document.getElementById('audio-cyber');
+
+            const inicioSitio = document.getElementById('inicio-sitio');
+            const subsitios = document.querySelectorAll('.subsitio-pagina');
+            const navLinks = document.querySelectorAll('.nav-links a');
+
+            // Formulario de encuesta
+            const formEncuesta = document.getElementById('bullying-form');
+            const blockSuccess = document.getElementById('success-block');
+
+            // 1. Desbloqueo inicial (Clic en el Robot)
+            overlay.addEventListener('click', () => {
+                elementosOcultos.forEach(el => el.classList.add('visible'));
+                body.classList.remove('locked');
+                overlay.style.display = 'none';
+                
+                // Activar música de fondo de manera segura
+                audio.play().catch(err => console.log("Audio inicializado."));
+            });
+
+            // 2. Función Core SPA: Navegación entre Subsitios
+            function irASubsitio(idSubsitio) {
+                inicioSitio.style.display = 'none';
+                subsitios.forEach(pag => pag.style.display = 'none');
+
+                const subsitioDestino = document.getElementById(idSubsitio);
+                if (subsitioDestino) {
+                    subsitioDestino.style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+
+                navLinks.forEach(link => link.classList.remove('active-nav'));
+                const navActivo = document.querySelector(`.nav-links a[data-target="${idSubsitio}"]`);
+                if (navActivo) navActivo.classList.add('active-nav');
+            }
+
+            // 3. Función para regresar al Inicio (Home)
+            function regresarAlInicio() {
+                subsitios.forEach(pag => pag.style.display = 'none');
+                inicioSitio.style.display = 'flex';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                navLinks.forEach(link => link.classList.remove('active-nav'));
+                document.querySelector('.nav-home').classList.add('active-nav');
+            }
+
+            // Clic en los enlaces del Menú de navegación superior
+            document.querySelectorAll('.nav-trigger').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = link.getAttribute('data-target');
+                    irASubsitio(target);
+                });
+            });
+
+            // Clic en los botones "Regresar al Inicio" internos de cada subsitio
+            document.querySelectorAll('.btn-regresar').forEach(btn => {
+                btn.addEventListener('click', regresarAlInicio);
+            });
+
+            // Clic en el botón Home del Menú superior
+            document.querySelector('.nav-home').addEventListener('click', (e) => {
+                e.preventDefault();
+                regresarAlInicio();
+            });
+
+            // 4. Procesar Envío de la Encuesta de Forma Interactiva
+            if (formEncuesta) {
+                formEncuesta.addEventListener('submit', (e) => {
+                    e.preventDefault(); // Evita que la página se recargue
+                    
+                    // Ocultamos los campos del formulario con una animación suave
+                    formEncuesta.style.transition = 'opacity 0.4s';
+                    formEncuesta.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        formEncuesta.style.display = 'none';
+                        // Mostramos el bloque de éxito con la confirmación anónima
+                        blockSuccess.style.display = 'block';
+                        blockSuccess.style.opacity = '0';
+                        blockSuccess.style.transition = 'opacity 0.6s';
+                        setTimeout(() => {
+                            blockSuccess.style.opacity = '1';
+                        }, 50);
+                    }, 400);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
